@@ -302,7 +302,6 @@ func scanRightCurly(l *Lexer) stateFn {
 func scanQuote(l *Lexer) stateFn {
 	r := l.next() // We've aready got the "
 	for !isQuote(r) {
-		r = l.next()
 		if r == '\\' {
 			if l.peek() == '"' {
 				r = l.next() // Read the "
@@ -334,6 +333,7 @@ func scanQuote(l *Lexer) stateFn {
 				l.errorf("Line %d: illegal escape sequence", l.Line)
 			}
 		}
+		r = l.next()
 	}
 	l.backup() // Remove the last "
 	l.emit(ItemString)
