@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/Sirupsen/logrus"
@@ -105,14 +106,7 @@ func (p *Parser) parse() {
 		switch {
 		case checkItemType(item, lexer.ItemImport):
 			p.log.Debugf("Keyword found: %s\n", lexer.ItemNames[lexer.ItemImport])
-			item = p.nextItem()
-			if checkItemType(item, lexer.ItemString) {
-				if !p.addImport(item) {
-					p.warnf("WARN line %d: Module %s already imported.\n", item.Line, item.Val)
-				}
-			} else {
-				p.errorf("ERROR: line %d expected %s and found.\n", item.Line, lexer.ItemNames[lexer.ItemString], lexer.ItemNames[item.Typ])
-			}
+			p.processImport()
 			break
 		case checkItemType(item, lexer.ItemPrivate):
 			p.log.Debugf("Keyword found: %s\n", lexer.ItemNames[lexer.ItemPrivate])
@@ -131,6 +125,17 @@ func (p *Parser) parse() {
 		case checkItemType(item, lexer.Eof):
 			break
 		}
+	}
+}
+
+func (p *Parser) processImport() {
+	item := p.nextItem()
+	if checkItemType(item, lexer.ItemString) {
+		if !p.addImport(item) {
+			p.warnf("WARN line %d: Module %s already imported.\n", item.Line, item.Val)
+		}
+	} else {
+		p.errorf("ERROR: line %d expected %s and found.\n", item.Line, lexer.ItemNames[lexer.ItemString], lexer.ItemNames[item.Typ])
 	}
 }
 
@@ -314,12 +319,29 @@ func (p *Parser) processHexRange() string {
 	item := p.nextItem()
 	if checkItemType(item, lexer.ItemNumber) {
 		numA := item.Val
+		nA, err := strconv.Atoi(numA)
+		fmt.Println(nA)
+		if err == nil {
+			if nA < 0 {
+				p.errorf("ERROR: line %d expected >= 0 integer found %s", item.Line, lexer.ItemNames[lexer.ItemRightSqrt], lexer.ItemNames[item.Typ])
+			}
+		} else {
+			p.errorf("ERROR: line %d unable to convert %s", item.Line, lexer.ItemNames[item.Typ])
+		}
 		item = p.nextItem()
 		if checkItemType(item, lexer.ItemDash) {
 			dash := item.Val
 			item = p.nextItem()
 			if checkItemType(item, lexer.ItemNumber) {
 				numB := item.Val
+				nB, err := strconv.Atoi(numB)
+				if err == nil {
+					if nB < nA {
+						p.errorf("ERROR: line %d expected %s to be grather than %s", item.Line, numB, numA)
+					}
+				} else {
+					p.errorf("ERROR: line %d unable to convert %s", item.Line, lexer.ItemNames[item.Typ])
+				}
 				item = p.nextItem()
 				if checkItemType(item, lexer.ItemRightSqrt) {
 					value = value + numA + dash + numB + item.Val

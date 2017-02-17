@@ -146,60 +146,61 @@ func lexText(l *Lexer) stateFn {
 	// start collecting Token text
 	r := l.next()
 	for !isEOF(r) {
-		if isEOF(r) {
+		switch {
+		case isEOF(r):
 			l.emit(ItemEOF)
 			return nil
-		} else if isBlank(r) {
+		case isBlank(r):
 			l.acceptRun(blankChars)
 			l.ignore()
-		} else if isSlash(r) {
+		case isSlash(r):
 			return scanCommentOrRegex
-		} else if isDolar(r) {
+		case isDolar(r):
 			return scanVariable
-		} else if isQuote(r) {
+		case isQuote(r):
 			l.ignore() // Removes the first "
 			return scanQuote
-		} else if isEqual(r) {
+		case isEqual(r):
 			return scanEqual
-		} else if isAlphaNumeric(r) {
+		case isAlphaNumeric(r):
 			return scanKeyword
-		} else if isColon(r) {
+		case isColon(r):
 			return scanColon
-		} else if isLeftCurly(r) {
+		case isLeftCurly(r):
 			return scanLeftCurly
-		} else if isRigthCurly(r) {
+		case isRigthCurly(r):
 			return scanRightCurly
-		} else if isLeftSqrt(r) {
+		case isLeftSqrt(r):
 			return scanLeftSqrt
-		} else if isRigthSqrt(r) {
+		case isRigthSqrt(r):
 			return scanRightSqrt
-		} else if isLeftBra(r) {
+		case isLeftBra(r):
 			return scanLeftBra
-		} else if isRigthBra(r) {
+		case isRigthBra(r):
 			return scanRightBra
-		} else if isWildCard(r) {
+		case isWildCard(r):
 			return scanWildCard
-		} else if isDash(r) {
+		case isDash(r):
 			return scanDash
-		} else if isPipe(r) {
+		case isPipe(r):
 			return scanPipe
-		} else if isHash(r) {
+		case isHash(r):
 			return scanHash
-		} else if isDot(r) {
+		case isDot(r):
 			return scanDot
-		} else if isStar(r) {
+		case isStar(r):
 			return scanStar
-		} else if isCaret(r) {
+		case isCaret(r):
 			return scanCaret
-		} else if isPlusOrMinus(r) {
+		case isPlusOrMinus(r):
 			return scanPlusOrMinus
-		} else if isComma(r) {
+		case isComma(r):
 			return scanComma
-		} else if isAt(r) {
+		case isAt(r):
 			return scanAt
-		} else if isGratherThan(r) {
+		case isGratherThan(r):
 			return scanGratherThan
-		} else if isLessThan(r) {
+		case isLessThan(r):
 			return scanLessThan
 		}
 
