@@ -11,20 +11,20 @@
 ```
 
 
-YaGo is a translation tool which converts Yara rules in JSON format so they could be handeled easyly with a NoSQL database, for example.
+YaGo is a translation tool which converts Yara rules in JSON format so they could be handeled easily with a NoSQL database, for example.
 
-The way that YaGo works its really easy, you can just call de tool by giving a Yara rule as an argument or you can import the modules on your project and use it on your way.
+The way that YaGo works its really easy, you can just call the tool by giving a Yara rule as an argument or you can import the modules on your project and use it on your way.
 
-YaGo is written in [Golang](https://golang.org/) so it can run on lots of platforms (see [GOOS and GOARCH](https://golang.org/doc/install/source#environment)). We have provide a Makefile which build YaGo on the most common platforms, in addition we provide those binaries as releases [here](https://github.com/Yara-Rules/yago/releases) at Github.com.
+YaGo is written in [Golang](https://golang.org/) so you can run it on lots of platforms (see [GOOS and GOARCH](https://golang.org/doc/install/source#environment)). We have provide a Makefile which build YaGo on the most common platforms, in addition we provide those binaries as releases [here](https://github.com/Yara-Rules/yago/releases) at Github.com.
 
 # Running YaGo
-As sed before YaGo is a command line tool, but you can use it on your projects by using the modules.
+As sed before YaGo is a command line tool, but you can use it on your projects by using its modules.
 
 ## Command line
 When you run YaGo without any argument it returns a help message like this one:
 
 ```
-./build/yago
+./yago
   -cwd string
       CWD from the Yara rules will be imported (default ".")
   -dirName string
@@ -37,7 +37,7 @@ When you run YaGo without any argument it returns a help message like this one:
       Yara index file
 ```
 
-At the moment YaGo is supporting three input modes. It can parse a sigle Yara rule file, a directory of Yara rule files, and index Yara file.
+At the moment YaGo is supporting three input modes. It can parse a sigle Yara rule file, a directory of Yara rule files, and Yara index file.
 
 You can call YaGo using the next flags:
 * `-fileName` which points a Yara rule.
@@ -48,7 +48,7 @@ You can call YaGo using the next flags:
 ./build/yago -fileName test/EK_Fragus.yar
 ```
 
-When parsing a index file with YaGo you can provide a Current Working Directory (CWD) path and it will be attached at the begining of each rule path when reading the file.
+When parsing a index file with YaGo you can provide a Current Working Directory (CWD) path and it will be added at the begining of each rule path when reading the file.
 
 
 ```
@@ -63,8 +63,7 @@ include "rules/EK_Blackhole.yar"
 
 YaGo will look for rules at `path/with/rules/rules/`.
 
-The last option is the flag `-format`. At the moment YaGo is only supporting two formats: `json`, and `bson`. By default YaGol will use `json`.
-
+The last option is the flag `-format`. At the moment YaGo is only supporting two formats: `json`, and `bson`. By default YaGo will use `json`.
 
 A json output looks like
 
@@ -74,7 +73,7 @@ A json output looks like
   "imports": null,
   "rules": [
     {
-      "name": "Mal\_PotPlayer\_DLL",
+      "name": "Mal_PotPlayer_DLL",
       "global": false,
       "private": false,
       "tags": [
