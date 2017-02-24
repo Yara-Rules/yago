@@ -172,7 +172,6 @@ func (p *Parser) processRule(global, private bool) {
 				Global:  global,
 				Private: private,
 			}
-			// fmt.Printf("RULE: %s\n", ruleName)
 			item = p.nextItem()
 			if checkItemType(p.LastItem, lexer.ItemColon) { // Tags comming
 				newRule.Tags = p.processTags()
@@ -270,31 +269,37 @@ func (p *Parser) processStrings() []StringDef {
 	var key lexer.Item
 	var value string
 	var strings []StringDef
+	stringTable := []string{}
 
 	item := p.nextItem()
 	for !checkItemType(item, lexer.ItemCondition) {
 		key = item
-		if checkItemType(item, lexer.ItemVariable) {
-			item = p.nextItem()
-			if checkItemType(item, lexer.ItemEqual) {
+		if !stringDefined(stringTable, item) {
+			stringTable = append(stringTable, item.Val)
+			if checkItemType(item, lexer.ItemVariable) {
 				item = p.nextItem()
-				if checkItemType(item, lexer.ItemString) ||
-					checkItemType(item, lexer.ItemTrue) || // Yara allows boolans as values
-					checkItemType(item, lexer.ItemFalse) {
-					value, mods := p.processStringModifiers()
-					strings = append(strings, StringDef{Name: key.Val, Value: value, Modifiers: mods})
-				} else if checkItemType(item, lexer.ItemRegex) {
-					value, mods := p.processStringModifiers()
-					strings = append(strings, StringDef{Name: key.Val, Value: value, Modifiers: mods})
-				} else if checkItemType(item, lexer.ItemLeftCurly) {
-					value = p.processHexValues()
-					strings = append(strings, StringDef{Name: key.Val, Value: value})
+				if checkItemType(item, lexer.ItemEqual) {
+					item = p.nextItem()
+					if checkItemType(item, lexer.ItemString) ||
+						checkItemType(item, lexer.ItemTrue) || // Yara allows boolans as values
+						checkItemType(item, lexer.ItemFalse) {
+						value, mods := p.processStringModifiers()
+						strings = append(strings, StringDef{Name: key.Val, Value: value, Modifiers: mods})
+					} else if checkItemType(item, lexer.ItemRegex) {
+						value, mods := p.processStringModifiers()
+						strings = append(strings, StringDef{Name: key.Val, Value: value, Modifiers: mods})
+					} else if checkItemType(item, lexer.ItemLeftCurly) {
+						value = p.processHexValues()
+						strings = append(strings, StringDef{Name: key.Val, Value: value})
+					}
+				} else {
+					p.errorf("ERROR: line %d expected %s found %s", item.Line, lexer.ItemNames[lexer.ItemEqual], lexer.ItemNames[item.Typ])
 				}
 			} else {
-				p.errorf("ERROR: line %d expected %s found %s", item.Line, lexer.ItemNames[lexer.ItemEqual], lexer.ItemNames[item.Typ])
+				p.errorf("ERROR: line %d expected %s found %s", item.Line, lexer.ItemNames[lexer.ItemVariable], lexer.ItemNames[item.Typ])
 			}
 		} else {
-			p.errorf("ERROR: line %d expected %s found %s", item.Line, lexer.ItemNames[lexer.ItemVariable], lexer.ItemNames[item.Typ])
+			p.errorf("ERROR: line %d duplicated string identifier %s", item.Line, item.Val)
 		}
 		item = p.nextItem()
 	}
