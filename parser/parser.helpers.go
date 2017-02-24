@@ -25,6 +25,9 @@ func (p *Parser) alreadyImported(item lexer.Item) bool {
 }
 
 func stringDefined(stringTable []string, item lexer.Item) bool {
+	if item.Val == "$" {
+		return false
+	}
 	for _, str := range stringTable {
 		if str == item.Val {
 			return true
