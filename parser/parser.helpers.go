@@ -24,6 +24,15 @@ func (p *Parser) alreadyImported(item lexer.Item) bool {
 	return false
 }
 
+func stringDefined(stringTable []string, item lexer.Item) bool {
+	for _, str := range stringTable {
+		if str == item.Val {
+			return true
+		}
+	}
+	return false
+}
+
 func (p *Parser) addImport(item lexer.Item) bool {
 	if !p.alreadyImported(item) {
 		p.Imports = append(p.Imports, item.Val)
