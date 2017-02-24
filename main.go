@@ -30,6 +30,7 @@ func processFile(fileName *string) []*parser.Parser {
 	}
 
 	p := parser.New(path.Base(*fileName))
+	p.SetLogLevel("INFO")
 	p.Parse(string(file))
 
 	var res []*parser.Parser
@@ -88,7 +89,6 @@ func processIndex(indexFile, indexCwd *string) []*parser.Parser {
 				if err != nil {
 					log.Fatal(err)
 				}
-
 				p := parser.New(path.Base(rulePath))
 				p.Parse(string(file))
 				res = append(res, p)

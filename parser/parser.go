@@ -111,16 +111,38 @@ func (p *Parser) parse() {
 		case checkItemType(item, lexer.ItemPrivate):
 			p.log.Debugf("Keyword found: %s\n", lexer.ItemNames[lexer.ItemPrivate])
 			private = true
+			item = p.Lex.NextItem()
+			if checkItemType(item, lexer.ItemGlobal) {
+				p.log.Debugf("Keyword found: %s\n", lexer.ItemNames[lexer.ItemGlobal])
+				global = true
+				item = p.Lex.NextItem()
+			}
+			if checkItemType(item, lexer.ItemRule) {
+				p.log.Debugf("Keyword found: %s\n", lexer.ItemNames[lexer.ItemRule])
+				p.processRule(global, private)
+				private = false
+				global = false
+			}
 			break
 		case checkItemType(item, lexer.ItemGlobal):
 			p.log.Debugf("Keyword found: %s\n", lexer.ItemNames[lexer.ItemGlobal])
 			global = true
+			item = p.Lex.NextItem()
+			if checkItemType(item, lexer.ItemPrivate) {
+				p.log.Debugf("Keyword found: %s\n", lexer.ItemNames[lexer.ItemPrivate])
+				private = true
+				item = p.Lex.NextItem()
+			}
+			if checkItemType(item, lexer.ItemRule) {
+				p.log.Debugf("Keyword found: %s\n", lexer.ItemNames[lexer.ItemRule])
+				p.processRule(global, private)
+				private = false
+				global = false
+			}
 			break
 		case checkItemType(item, lexer.ItemRule):
 			p.log.Debugf("Keyword found: %s\n", lexer.ItemNames[lexer.ItemRule])
 			p.processRule(global, private)
-			private = false
-			global = false
 			break
 		case checkItemType(item, lexer.Eof):
 			break
@@ -150,6 +172,7 @@ func (p *Parser) processRule(global, private bool) {
 				Global:  global,
 				Private: private,
 			}
+			// fmt.Printf("RULE: %s\n", ruleName)
 			item = p.nextItem()
 			if checkItemType(p.LastItem, lexer.ItemColon) { // Tags comming
 				newRule.Tags = p.processTags()
@@ -225,7 +248,9 @@ func (p *Parser) processMeta() map[string]string {
 				item = p.nextItem()
 				value = item
 				if checkItemType(item, lexer.ItemString) ||
-					checkItemType(item, lexer.ItemNumber) {
+					checkItemType(item, lexer.ItemNumber) ||
+					checkItemType(item, lexer.ItemTrue) || // Yara allows boolans as values
+					checkItemType(item, lexer.ItemFalse) {
 					meta[key.Val] = value.Val
 				} else {
 					p.errorf("ERROR: line %d expected %s or %s found %s", item.Line, lexer.ItemNames[lexer.ItemString], lexer.ItemNames[lexer.ItemNumber], lexer.ItemNames[item.Typ])
@@ -253,11 +278,14 @@ func (p *Parser) processStrings() []StringDef {
 			item = p.nextItem()
 			if checkItemType(item, lexer.ItemEqual) {
 				item = p.nextItem()
-				if checkItemType(item, lexer.ItemString) {
-					value, mods := p.processStringValues()
+				if checkItemType(item, lexer.ItemString) ||
+					checkItemType(item, lexer.ItemTrue) || // Yara allows boolans as values
+					checkItemType(item, lexer.ItemFalse) {
+					value, mods := p.processStringModifiers()
 					strings = append(strings, StringDef{Name: key.Val, Value: value, Modifiers: mods})
 				} else if checkItemType(item, lexer.ItemRegex) {
-					strings = append(strings, StringDef{Name: key.Val, Value: item.Val})
+					value, mods := p.processStringModifiers()
+					strings = append(strings, StringDef{Name: key.Val, Value: value, Modifiers: mods})
 				} else if checkItemType(item, lexer.ItemLeftCurly) {
 					value = p.processHexValues()
 					strings = append(strings, StringDef{Name: key.Val, Value: value})
@@ -273,7 +301,7 @@ func (p *Parser) processStrings() []StringDef {
 	return strings
 }
 
-func (p *Parser) processStringValues() (string, []string) {
+func (p *Parser) processStringModifiers() (string, []string) {
 	value := p.LastItem
 	var mods []string
 	// item = p.nextItem()
@@ -320,7 +348,6 @@ func (p *Parser) processHexRange() string {
 	if checkItemType(item, lexer.ItemNumber) {
 		numA := item.Val
 		nA, err := strconv.Atoi(numA)
-		fmt.Println(nA)
 		if err == nil {
 			if nA < 0 {
 				p.errorf("ERROR: line %d expected >= 0 integer found %s", item.Line, lexer.ItemNames[lexer.ItemRightSqrt], lexer.ItemNames[item.Typ])

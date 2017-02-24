@@ -74,7 +74,7 @@ A json output looks like
   "imports": null,
   "rules": [
     {
-      "name": "Mal\_PotPlayer\_DLL",
+      "name": "Mal_PotPlayer_DLL",
       "global": false,
       "private": false,
       "tags": [

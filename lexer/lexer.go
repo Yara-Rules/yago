@@ -32,6 +32,7 @@ func (l *Lexer) next() rune {
 		return Eof
 	}
 	r, w := utf8.DecodeRuneInString(l.Input[l.Pos:])
+
 	l.Width = Pos(w)
 	l.Pos += l.Width
 	if r == '\n' {
@@ -306,16 +307,12 @@ func scanQuote(l *Lexer) stateFn {
 		if r == '\\' {
 			if l.peek() == '"' {
 				r = l.next() // Read the "
-				r = l.next() // Prepare r for the next iteration
 			} else if l.peek() == '\\' {
 				r = l.next() // Read the \
-				r = l.next() // Prepare r for the next iteration
 			} else if l.peek() == 't' {
 				r = l.next() // Read the t
-				r = l.next() // Prepare r for the next iteration
 			} else if l.peek() == 'n' {
 				r = l.next() // Read the n
-				r = l.next() // Prepare r for the next iteration
 			} else if l.peek() == 'x' {
 				r = l.next() // Read the x
 				// It needs a two hex characters
@@ -323,7 +320,6 @@ func scanQuote(l *Lexer) stateFn {
 					r = l.next() // Read first hex char
 					if isHexChar(l.peek()) {
 						r = l.next() // Read first hex char
-						r = l.next() // Prepare r for the next iteration
 					} else {
 						l.errorf("Line %d: illegal escape sequence", l.Line)
 					}
@@ -351,7 +347,7 @@ func scanEqual(l *Lexer) stateFn {
 func scanVariable(l *Lexer) stateFn {
 	var r rune
 
-	if l.peek() == ' ' && l.scanned() == "$" {
+	if l.peek() == ' ' || l.peek() == '*' && l.scanned() == "$" {
 		l.emit(ItemVariable)
 		return lexText
 	}
@@ -379,8 +375,10 @@ func scanKeyword(l *Lexer) stateFn {
 	for !isBlank(r) && isAlphaNumeric(r) && length <= maxKeywordLength { // we still have content
 		length++
 		if keyword[l.scanned()] > ItemKeyword {
-			l.emit(keyword[l.scanned()])
-			return lexText
+			if !isAlphaNumeric(l.peek()) {
+				l.emit(keyword[l.scanned()])
+				return lexText
+			}
 		}
 		r = l.next()
 	}
@@ -389,7 +387,7 @@ func scanKeyword(l *Lexer) stateFn {
 		l.backup()
 	}
 
-	for !isBlank(l.peek()) && isAlphaNumeric(r) {
+	for !isBlank(l.peek()) && isAlphaNumeric(l.peek()) {
 		l.next()
 	}
 
@@ -397,6 +395,7 @@ func scanKeyword(l *Lexer) stateFn {
 		l.emit(ItemNumber)
 		return lexText
 	}
+
 	l.emit(ItemIdentifier)
 	return lexText
 }
@@ -409,7 +408,8 @@ func scanCommentOrRegex(l *Lexer) stateFn {
 			r = l.next()
 			if r == '*' && l.peek() == '/' {
 				r = l.next()
-				l.emit(ItemComment)
+				l.ignore()
+				// l.emit(ItemComment) // Removing comment
 				return lexText
 			}
 			if r == Eof {
@@ -422,11 +422,20 @@ func scanCommentOrRegex(l *Lexer) stateFn {
 		for !isEndOfLine(r) {
 			r = l.next()
 		}
-		l.emit(ItemComment)
+		l.ignore()
+		// l.emit(ItemComment) // Removing comment
 		return lexText
 	} else {
 		r := l.next()
-		for ; !isSlash(r); r = l.next() {
+		for !isSlash(r) {
+			if isBackSlash(r) {
+				if isBackSlash(l.peek()) {
+					r = l.next()
+				} else if isSlash(l.peek()) {
+					r = l.next() // Read /
+				}
+			}
+			r = l.next()
 		}
 		l.emit(ItemRegex)
 		return lexText
@@ -446,6 +455,11 @@ func isColon(r rune) bool {
 // isSlash reports whether r is a slash
 func isSlash(r rune) bool {
 	return r == '/'
+}
+
+// isBackSlash reports whether r is a slash
+func isBackSlash(r rune) bool {
+	return r == '\\'
 }
 
 func isDolar(r rune) bool {
