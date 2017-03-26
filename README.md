@@ -11,44 +11,44 @@
 ```
 
 
-YaGo is a translation tool which converts Yara rules in JSON format so they could be handeled easyly with a NoSQL database, for example.
+YaGo is a translation tool which converts Yara rules in JSON format so they could be handled easyly with a NoSQL database, for example.
 
-The way that YaGo works its really easy, you can just call de tool by giving a Yara rule as an argument or you can import the modules on your project and use it on your way.
+The way that YaGo works it's really easy, you can just call it by giving a Yara rule as an argument or you can import the modules on your project and use it on your way.
 
-YaGo is written in [Golang](https://golang.org/) so it can run on lots of platforms (see [GOOS and GOARCH](https://golang.org/doc/install/source#environment)). We have provide a Makefile which build YaGo on the most common platforms, in addition we provide those binaries as releases [here](https://github.com/Yara-Rules/yago/releases) at Github.com.
+YaGo is written in [Golang](https://golang.org/) so it can run on lots of platforms (see [GOOS and GOARCH](https://golang.org/doc/install/source#environment)). We have provided a Makefile which builds YaGo for the most common platforms, in addition we also provide those binaries as releases [here](https://github.com/Yara-Rules/yago/releases) at Github.com.
 
 # Running YaGo
-As sed before YaGo is a command line tool, but you can use it on your projects by using the modules.
+As it was said before YaGo is a command line tool, but you can use it on your projects by using the modules.
 
 ## Command line
 When you run YaGo without any argument it returns a help message like this one:
 
 ```
-./build/yago
-  -cwd string
-      CWD from the Yara rules will be imported (default ".")
-  -dirName string
-      Directory with a set of yara rules
-  -fileName string
-      Yara file you want to parse
-  -format string
-      Format you want the Yara rule to be parsed (default "json")
-  -indexFile string
-      Yara index file
+YaGo - Parsing Yara rules like a Gopher.
+
+Usage:
+  yago fileName <fileName> [ --validJSON ]
+  yago dirName <dirName> [ --validJSON ]
+  yago indexFile <indexFile> [ cwd <path> ] [ --validJSON ]
+  yago inputFile <inputFile> outputDir <outputDir> [ --overwrite ] [ --validJSON ]
+  yago inputFile <inputFile> outputFile <outputFile> [ --overwrite ] [ --validJSON ]
+  yago -h | --help
+  yago --version
 ```
 
-At the moment YaGo is supporting three input modes. It can parse a sigle Yara rule file, a directory of Yara rule files, and index Yara file.
+At the moment YaGo is supporting four input modes. It can parse a single Yara rule file, a directory of Yara rule files, index Yara file, and JSON file.
 
-You can call YaGo using the next flags:
-* `-fileName` which points a Yara rule.
-* `-dirName` which points a directory with Yara rule files.
-* `-indexFile` which points a Yara index file.
+You can call YaGo by using the next arguments:
+* `fileName` which points a Yara rule.
+* `dirName` which points a directory with Yara rule files.
+* `indexFile` which points a Yara index file.
+* `inputFile` which points a JSON file with Yara rules previously parsed.
 
 ```
-./build/yago -fileName test/EK_Fragus.yar
+./build/yago fileName ./test/EK_Fragus.yar
 ```
 
-When parsing a index file with YaGo you can provide a Current Working Directory (CWD) path and it will be attached at the begining of each rule path when reading the file.
+When parsing an index file with YaGo you can provide the Current Working Directory (CWD) path and that path will be attached at the beginning of each rule path when reading the file.
 
 
 ```
@@ -58,13 +58,18 @@ include "rules/EK_Blackhole.yar"
 ```
 
 ```
-./build/yago -indexFile index.yar -cwd path/with/rules
+./build/yago indexFile index.yar cwd path/with/rules
 ```
 
-YaGo will look for rules at `path/with/rules/rules/`.
+YaGo will look for rules at `path/with/rules/rules/....yar`.
 
-The last option is the flag `-format`. At the moment YaGo is only supporting two formats: `json`, and `bson`. By default YaGol will use `json`.
+The last argument is `inputFile` that converts rules in JSON format that were previously translated back in Yara rules. This arguments accept two extra arguments which indicate the output is either a directory or file, in case of a file YaGO will merge all rules taking care of import and rule name collitions.
 
+In addition the `inputFile` argument has an `--overwrite` option that overwrite exisitng files on the output directory or file.
+
+Finally, all arguments have a `--validJSON` option. That option tells YaGo to either print out each rule in one line or print out the whole rule set in a file that meets JSON format.
+
+---
 
 A json output looks like
 
@@ -114,14 +119,14 @@ A json output looks like
           ]
         }
       ],
-      "condition": "uint16 ( 0 ) = = 0x5a4d and filesize < 200KB and $x1 or all of ( $s * )"
+      "condition": "uint16 ( 0 ) = = 0x5a4d and filesize < 200KB and $x1 or all of ( $s* )"
     }
   ]
 }
 ```
 
 ## Module import
-On the other hand, if you would like to use YaGo on your own project it is as easy as adding the following line in the import section.
+On the other hand, if you would like to use YaGo on your own project, it is as easy as adding the following line in the import section.
 
 ```
 import (
@@ -129,19 +134,19 @@ import (
 )
 ```
 
-Onece imported you can parse Yara rules by instantiating a new parser.
+Once imported you can parse Yara rules by instantiating a new parser.
 
 ```
-p := parser.New("FileName")
+p := yago.New("FileName")
 ```
 
-And parse the Yara rule by calling `Parse` method and giving the rules as string.
+And parse the Yara rule by calling `Parse` method and giving the rules as a string.
 
 ```
 p.Parse(string(file))
 ```
 
-Puting all together
+Puting it all together
 
 ```
 filePath := "path/to/yara/rule"
@@ -151,7 +156,7 @@ if err != nil {
     log.Fatal(err)
 }
 
-p := parser.New(path.Base(filePath))
+p := yago.New(path.Base(filePath))
 
 p.Parse(string(file))
 j, err := json.Marshal(p)
@@ -161,8 +166,9 @@ if err == nil {
 ```
 
 # Contribute
-If you would like to be part of the Yara comunity or Yara-Rules project you are free to contribute with us in any maner. Yo can send issues o pull requests, by sharing Yara rules, etc.
+If you would like to be part of the Yara comunity or Yara-Rules project you are free to contribute with us in any way. You can send issues or pull requests, by sharing Yara rules, etc.
 
 # Changelog
 Version: **0.1.0**
 Initial release.
+

@@ -1,12 +1,16 @@
 appname := yago
-BINARY="yago"
+BINARYNAME="YaGo"
 VERSION=v0.1.0
 TARGET=all
-BUILD_TIME=`date +%FT%T%z`
-BUILD=`git rev-parse HEAD`
+BUILD_TIME=$(shell date +%FT%T%z)
+BUILD=$(shell git rev-parse HEAD)
 LDFLAGS=-ldflags="\
 	-s \
-	-w"
+	-w \
+	-X main.Name=${BINARYNAME} \
+	-X main.Version=${VERSION} \
+	-X main.BuildID=${BUILD} \
+	-X main.BuildDate=${BUILD_TIME}"
 
 sources := $(wildcard *.go)
 
@@ -58,6 +62,7 @@ build/windows_amd64.zip: $(sources)
 	$(call cmd,windows,amd64,.exe)
 	$(call zip,windows,amd64,.exe)
 
+##### DEV BUILDS #####
 dev: build-dev/darwin_amd64.tar.gz
 
 build-dev/darwin_amd64.tar.gz:

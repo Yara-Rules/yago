@@ -1,147 +1,106 @@
 package main
 
-import (
-	"encoding/json"
-	"flag"
-	"io/ioutil"
-	"log"
-	"os"
-	"path"
-	"path/filepath"
-	"regexp"
-	"strings"
+import docopt "github.com/docopt/docopt-go"
 
-	"gopkg.in/mgo.v2/bson"
-
-	"github.com/Yara-Rules/yago/parser"
+var (
+	// Build variables (set at buildtime by the compiler)
+	Name      = "YaGo"
+	Version   = "v0.0.0"
+	BuildID   = ""
+	BuildDate = ""
 )
-
-const (
-	MULTILINE = `\s*/\*([^*]|\*+[^*/])*\*+/\s*`
-	INLINE    = `(?m)\s*//.*[\n\r][\n\r]?`
-	BLANKS    = `(?m)\s+$`
-	QUOTES    = `"`
-)
-
-func processFile(fileName *string) []*parser.Parser {
-	file, err := ioutil.ReadFile(*fileName)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	p := parser.New(path.Base(*fileName))
-	p.SetLogLevel("INFO")
-	p.Parse(string(file))
-
-	var res []*parser.Parser
-	res = append(res, p)
-	return res
-}
-
-func processDir(dirName *string) []*parser.Parser {
-	var res []*parser.Parser
-	fileList := []string{}
-	filepath.Walk(*dirName, func(path string, info os.FileInfo, err error) error {
-		if !info.IsDir() {
-			fileList = append(fileList, path)
-		}
-		return nil
-	})
-
-	for _, filePath := range fileList {
-		file, err := ioutil.ReadFile(filePath)
-		if err != nil {
-			log.Fatal(err)
-		}
-		p := parser.New(path.Base(filePath))
-		p.Parse(string(file))
-		res = append(res, p)
-	}
-	return res
-}
-
-func processIndex(indexFile, indexCwd *string) []*parser.Parser {
-	var res []*parser.Parser
-	file, err := ioutil.ReadFile(*indexFile)
-	if err != nil {
-		log.Fatal(err)
-	}
-	re := regexp.MustCompile(MULTILINE)
-	index := re.ReplaceAllString(string(file), "")
-
-	re = regexp.MustCompile(INLINE)
-	index = re.ReplaceAllString(index, "")
-	index = re.ReplaceAllString(index, "")
-
-	re = regexp.MustCompile(BLANKS)
-	index = re.ReplaceAllString(index, "")
-
-	re = regexp.MustCompile(QUOTES)
-	index = re.ReplaceAllString(index, "")
-
-	lines := strings.Split(index, "\n")
-	for _, value := range lines {
-		ruleFile := strings.Split(value, " ")
-		if len(ruleFile) == 2 {
-			rulePath := path.Join(*indexCwd, ruleFile[1])
-			if _, err := os.Stat(rulePath); err == nil {
-				file, err := ioutil.ReadFile(rulePath)
-				if err != nil {
-					log.Fatal(err)
-				}
-				p := parser.New(path.Base(rulePath))
-				p.Parse(string(file))
-				res = append(res, p)
-			}
-		}
-	}
-
-	return res
-}
 
 func main() {
 
-	fileName := flag.String("fileName", "", "Yara file you want to parse")
-	dirName := flag.String("dirName", "", "Directory with a set of yara rules")
-	indexFile := flag.String("indexFile", "", "Yara index file")
-	indexCwd := flag.String("cwd", ".", "CWD from the Yara rules will be imported")
-	format := flag.String("format", "json", "Format you want the Yara rule to be parsed")
-	flag.Parse()
+	usage := `YaGo - Parsing Yara rules like a Gopher.
 
-	if len(*fileName) == 0 && len(*dirName) == 0 && len(*indexFile) == 0 {
-		flag.PrintDefaults()
-		os.Exit(1)
-	}
-	if len(*fileName) != 0 && (len(*dirName) != 0 || len(*indexFile) != 0) ||
-		len(*dirName) != 0 && (len(*fileName) != 0 || len(*indexFile) != 0) ||
-		len(*indexFile) != 0 && (len(*fileName) != 0 || len(*dirName) != 0) {
-		os.Stderr.WriteString("ERR: You must provide only one of fileName, dirName or indexFile.\n")
-		flag.PrintDefaults()
-		os.Exit(1)
-	}
+Usage:
+  yago fileName <fileName> [ --validJSON ]
+  yago dirName <dirName> [ --validJSON ]
+  yago indexFile <indexFile> [ cwd <path> ] [ --validJSON ]
+  yago inputFile <inputFile> outputDir <outputDir> [ --overwrite ] [ --validJSON ]
+  yago inputFile <inputFile> outputFile <outputFile> [ --overwrite ] [ --validJSON ]
+  yago -h | --help
+  yago --version
 
-	var p []*parser.Parser
+Options:
+  -h --help             Show this screen.
+  --overwrite           Overwrites existing files [dafault: false].
+  --validJSON           Print rules using a valid JSON format [dafault: false].
+  --version             Show version.
+`
+	version := printVersion()
+	arguments, _ := docopt.Parse(usage, nil, true, version, false)
 
-	if len(*fileName) != 0 {
-		p = processFile(fileName)
-	} else if len(*dirName) != 0 {
-		p = processDir(dirName)
-	} else if len(*indexFile) != 0 {
-		p = processIndex(indexFile, indexCwd)
-	}
-
-	for _, r := range p {
-		if *format == "json" {
-			j, err := json.Marshal(r)
-			if err == nil {
-				os.Stdout.Write(j)
-			}
-		} else if *format == "bson" {
-			j, err := bson.Marshal(r)
-			if err == nil {
-				os.Stdout.Write(j)
-			}
+	if arguments["fileName"].(bool) {
+		if arguments["<fileName>"].(string) == "" {
+			errAndExit("ERROR: You must provide a file.")
 		}
+
+		validJSON := arguments["--validJSON"].(bool)
+		fileName := arguments["<fileName>"].(string)
+
+		res := processFile(fileName)
+		generateOutputFromYara(res, validJSON)
+
+	} else if arguments["dirName"].(bool) {
+		if arguments["<dirName>"].(string) == "" {
+			errAndExit("ERROR: You must provide a directory.")
+		}
+
+		validJSON := arguments["--validJSON"].(bool)
+		dirName := arguments["<dirName>"].(string)
+
+		res := processDir(dirName)
+		generateOutputFromYara(res, validJSON)
+
+	} else if arguments["indexFile"].(bool) {
+		if arguments["<indexFile>"].(string) == "" {
+			errAndExit("ERROR: You must provide a index file.")
+		}
+		cwd := ""
+		if arguments["cwd"].(bool) {
+			cwd = arguments["<path>"].(string)
+		}
+
+		validJSON := arguments["--validJSON"].(bool)
+		indexFile := arguments["<indexFile>"].(string)
+
+		res := processIndex(indexFile, cwd)
+		generateOutputFromYara(res, validJSON)
+
+	} else if arguments["inputFile"].(bool) {
+		if arguments["<inputFile>"].(string) == "" {
+			errAndExit("ERROR: You must provide a input file.")
+		}
+
+		inputFile := arguments["<inputFile>"].(string)
+		validJSON := arguments["--validJSON"].(bool)
+		overwrite := arguments["--overwrite"].(bool)
+
+		if arguments["outputDir"].(bool) {
+			if arguments["<outputDir>"].(string) == "" {
+				errAndExit("ERROR: You must provide a output directory.")
+			}
+
+			outputDir := arguments["<outputDir>"].(string)
+
+			res := processInputFile(inputFile, validJSON)
+			generateOutputToYaraDir(res, outputDir, overwrite)
+
+		} else if arguments["outputFile"].(bool) {
+			if arguments["<outputFile>"].(string) == "" {
+				errAndExit("ERROR: You must provide a output file.")
+			}
+
+			outputFile := arguments["<outputFile>"].(string)
+
+			res := processInputFile(inputFile, validJSON)
+			uniq := unifyRules(res)
+			generateOutputToYaraFile(uniq, outputFile, overwrite)
+		}
+
+	} else {
+		errAndExit("Unexpected argument")
 	}
-	return
 }
