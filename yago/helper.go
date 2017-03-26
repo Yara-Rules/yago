@@ -3,7 +3,7 @@ package yago
 import (
 	"reflect"
 
-	"dev.jau.me/YaGo2/lexic"
+	"github.com/Yara-Rules/yago/lexic"
 )
 
 func (p *Parser) addImport(item lexic.Item) bool {

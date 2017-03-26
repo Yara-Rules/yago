@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"dev.jau.me/YaGo2/yago"
+	"github.com/Yara-Rules/yago/yago"
 )
 
 type jsonCloak struct {

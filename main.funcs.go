@@ -11,7 +11,7 @@ import (
 	"regexp"
 	"strings"
 
-	"dev.jau.me/YaGo2/yago"
+	"github.com/Yara-Rules/yago/yago"
 )
 
 const (

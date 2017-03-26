@@ -1,8 +1,8 @@
 package yago
 
 import (
-	"dev.jau.me/YaGo2/lexic"
 	"github.com/Sirupsen/logrus"
+	"github.com/Yara-Rules/yago/lexic"
 )
 
 // Types of string variables

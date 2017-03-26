@@ -6,7 +6,7 @@ import (
 	"os"
 	"strconv"
 
-	"dev.jau.me/YaGo2/lexic"
+	"github.com/Yara-Rules/yago/lexic"
 
 	"github.com/Sirupsen/logrus"
 )
