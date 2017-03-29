@@ -19,6 +19,7 @@ const (
 	INLINE    = `(?m)\s*//.*[\n\r][\n\r]?`
 	BLANKS    = `(?m)\s+$`
 	QUOTES    = `"`
+	MAXBUFF   = 1024 * 1024 // If needed Go will take it form RAM.
 )
 
 func processFile(fileName string) []*yago.Parser {
@@ -115,8 +116,10 @@ func processInputFile(inputFile string, validJSON bool) []*yago.Parser {
 		checkErr(err)
 		defer file.Close()
 
+		var buff []byte
+
 		scanner := bufio.NewScanner(file)
-		// scanner.Split(splitBy)
+		scanner.Buffer(buff, MAXBUFF)
 
 		var rules *yago.Parser
 		for scanner.Scan() {
