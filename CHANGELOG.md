@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Added JSON to Yara converter into yago module. Now it is possible to use yago module properly. See #8.
 
 ## [0.1.1] - 29-03-2017
-### Fixed
+### Fixed
 - Increased buffer limit for reading JSON files
 - Updated copyright in LICENSE file
 
