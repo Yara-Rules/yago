@@ -3,7 +3,7 @@ package grammar
 import (
 	"fmt"
 
-	"dev.jau.me/YaGo2/lexic"
+	"github.com/Yara-Rules/yago/lexic"
 )
 
 // String returns a string representation of the Parser
