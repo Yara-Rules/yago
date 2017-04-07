@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 - Update wrong import reference in grammar/grammar.funcs.go
 
-## [0.1.2] - 07-04-2017
+## [0.1.2] - 07-04-2017 [YANKED]
 ### Changed
 - Added JSON to Yara converter into yago module. Now it is possible to use yago module properly. See #8.
 
