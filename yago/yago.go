@@ -1,4 +1,4 @@
-package main
+package yago
 
 import (
 	"bufio"
@@ -11,7 +11,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/Yara-Rules/yago/yago"
+	"github.com/Yara-Rules/yago/grammar"
 )
 
 const (
@@ -22,21 +22,25 @@ const (
 	MAXBUFF   = 1024 * 1024 // If needed Go will take it form RAM.
 )
 
-func processFile(fileName string) []*yago.Parser {
+func NewParser(name string) *grammar.Parser {
+	return grammar.New(name)
+}
+
+func ProcessFile(fileName string) []*grammar.Parser {
 	file, err := ioutil.ReadFile(fileName)
 	checkErr(err)
 
-	p := yago.New(path.Base(fileName))
+	p := NewParser(path.Base(fileName))
 	p.SetLogLevel("INFO")
 	p.Parse(string(file))
 
-	var res []*yago.Parser
+	var res []*grammar.Parser
 	res = append(res, p)
 	return res
 }
 
-func processDir(dirName string) []*yago.Parser {
-	var res []*yago.Parser
+func ProcessDir(dirName string) []*grammar.Parser {
+	var res []*grammar.Parser
 	fileList := []string{}
 	filepath.Walk(dirName, func(path string, info os.FileInfo, err error) error {
 		if !info.IsDir() {
@@ -49,7 +53,7 @@ func processDir(dirName string) []*yago.Parser {
 		file, err := ioutil.ReadFile(filePath)
 		checkErr(err)
 
-		p := yago.New(path.Base(filePath))
+		p := NewParser(path.Base(filePath))
 		p.SetLogLevel("INFO")
 		p.Parse(string(file))
 		res = append(res, p)
@@ -57,8 +61,8 @@ func processDir(dirName string) []*yago.Parser {
 	return res
 }
 
-func processIndex(indexFile, cwd string) []*yago.Parser {
-	var res []*yago.Parser
+func ProcessIndex(indexFile, cwd string) []*grammar.Parser {
+	var res []*grammar.Parser
 	file, err := ioutil.ReadFile(indexFile)
 	checkErr(err)
 
@@ -85,7 +89,7 @@ func processIndex(indexFile, cwd string) []*yago.Parser {
 				file, err := ioutil.ReadFile(rulePath)
 				checkErr(err)
 
-				p := yago.New(path.Base(rulePath))
+				p := NewParser(path.Base(rulePath))
 				p.SetLogLevel("INFO")
 				p.Parse(string(file))
 				res = append(res, p)
@@ -97,8 +101,8 @@ func processIndex(indexFile, cwd string) []*yago.Parser {
 	return res
 }
 
-func processInputFile(inputFile string, validJSON bool) []*yago.Parser {
-	var res []*yago.Parser
+func ProcessInputFile(inputFile string, validJSON bool) []*grammar.Parser {
+	var res []*grammar.Parser
 	if validJSON {
 		file, err := ioutil.ReadFile(inputFile)
 		checkErr(err)
@@ -121,9 +125,9 @@ func processInputFile(inputFile string, validJSON bool) []*yago.Parser {
 		scanner := bufio.NewScanner(file)
 		scanner.Buffer(buff, MAXBUFF)
 
-		var rules *yago.Parser
+		var rules *grammar.Parser
 		for scanner.Scan() {
-			rules = &yago.Parser{}
+			rules = &grammar.Parser{}
 			err = json.Unmarshal(scanner.Bytes(), rules)
 			if err != nil {
 				printError(err)
@@ -134,7 +138,7 @@ func processInputFile(inputFile string, validJSON bool) []*yago.Parser {
 	return res
 }
 
-func unifyRules(rules []*yago.Parser) unify {
+func UnifyRules(rules []*grammar.Parser) unify {
 	ruleSet := unify{}
 
 	for _, rule := range rules {
@@ -148,9 +152,9 @@ func unifyRules(rules []*yago.Parser) unify {
 	return ruleSet
 }
 
-func generateOutputFromYara(res []*yago.Parser, validJSON bool) {
+func GenerateOutputFromYara(res []*grammar.Parser, validJSON bool) {
 	if validJSON == true {
-		ruleset := map[string][]*yago.Parser{"ruleset": res}
+		ruleset := map[string][]*grammar.Parser{"ruleset": res}
 		j, err := json.Marshal(ruleset)
 		if err == nil {
 			os.Stdout.Write(j)
@@ -170,7 +174,7 @@ func generateOutputFromYara(res []*yago.Parser, validJSON bool) {
 	}
 }
 
-func generateOutputToYaraDir(rules []*yago.Parser, outputDir string, overwrite bool) {
+func GenerateOutputToYaraDir(rules []*grammar.Parser, outputDir string, overwrite bool) {
 	for _, rule := range rules {
 		savePath := path.Join(outputDir, rule.Name)
 		ruleStr := fmt.Sprintf("%s", rule.String())
@@ -184,7 +188,7 @@ func generateOutputToYaraDir(rules []*yago.Parser, outputDir string, overwrite b
 	}
 }
 
-func generateOutputToYaraFile(rule unify, outputFile string, overwrite bool) {
+func GenerateOutputToYaraFile(rule unify, outputFile string, overwrite bool) {
 	ruleStr := fmt.Sprintf("%s", rule.String())
 	if overwrite {
 		err := ioutil.WriteFile(outputFile, []byte(ruleStr), 0644)

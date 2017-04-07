@@ -130,45 +130,63 @@ On the other hand, if you would like to use YaGo on your own project, it is as e
 
 ```
 import (
-    "github.com/Yara-Rules/yago/parser"
+    "github.com/Yara-Rules/yago/yago"
 )
 ```
 
-Once imported you can parse Yara rules by instantiating a new parser.
+You can process the rules using the either parser API or the YaGo's one.
+
+Using parser API
 
 ```
-p := yago.New("FileName")
-```
+package main
 
-And parse the Yara rule by calling `Parse` method and giving the rules as a string.
+import (
+  "encoding/json"
+  "fmt"
+  "io/ioutil"
+  "os"
 
-```
-p.Parse(string(file))
-```
+  "github.com/Yara-Rules/yago/yago"
+)
 
-Puting it all together
+func main() {
+  file, _ := ioutil.ReadFile("test.yar")
 
-```
-filePath := "path/to/yara/rule"
+  p := yago.NewParser("InformationName")
+  p.SetLogLevel("INFO") // Optionl. Accepts: INFO, WARN, DEBUG
+  p.Parse(string(file))
 
-file, err := ioutil.ReadFile(filePath)
-if err != nil {
-    log.Fatal(err)
-}
-
-p := yago.New(path.Base(filePath))
-
-p.Parse(string(file))
-j, err := json.Marshal(p)
-if err == nil {
+  j, err := json.Marshal(p)
+  if err == nil {
     os.Stdout.Write(j)
+    os.Stdout.WriteString("\n") // Useful when importing the result in other tools
+  } else {
+    fmt.Println(err)
+  }
 }
+
+```
+
+On the other hand, you can use the YaGo API.
+
+```
+package main
+
+import "github.com/Yara-Rules/yago/yago"
+
+func main() {
+  r := yago.ProcessFile("test.yar")
+  yago.GenerateOutputFromYara(r, false)
+
+}
+
 ```
 
 # Contribute
 If you would like to be part of the Yara comunity or Yara-Rules project you are free to contribute with us in any way. You can send issues or pull requests, by sharing Yara rules, etc.
 
 # Changelog
-Version: **0.1.0**
+Version: **0.1.2**
 Initial release.
 

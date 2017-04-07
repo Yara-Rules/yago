@@ -1,13 +1,19 @@
 package main
 
-import docopt "github.com/docopt/docopt-go"
+import (
+	"github.com/Yara-Rules/yago/yago"
+	docopt "github.com/docopt/docopt-go"
+)
 
 var (
-	// Build variables (set at buildtime by the compiler)
-	Name      = "YaGo"
-	Version   = "v0.0.0"
-	BuildID   = ""
-	BuildDate = ""
+	// Name represents the executable name
+	Name = "YaGo"
+	// Version of the YaGo
+	Version = "v0.0.0"
+	// BuildID is the git commit
+	BuildID = "-1"
+	// BuildDate is the compilation date
+	BuildDate = "-1"
 )
 
 func main() {
@@ -40,8 +46,8 @@ Options:
 		validJSON := arguments["--validJSON"].(bool)
 		fileName := arguments["<fileName>"].(string)
 
-		res := processFile(fileName)
-		generateOutputFromYara(res, validJSON)
+		res := yago.ProcessFile(fileName)
+		yago.GenerateOutputFromYara(res, validJSON)
 
 	} else if arguments["dirName"].(bool) {
 		if arguments["<dirName>"].(string) == "" {
@@ -51,8 +57,8 @@ Options:
 		validJSON := arguments["--validJSON"].(bool)
 		dirName := arguments["<dirName>"].(string)
 
-		res := processDir(dirName)
-		generateOutputFromYara(res, validJSON)
+		res := yago.ProcessDir(dirName)
+		yago.GenerateOutputFromYara(res, validJSON)
 
 	} else if arguments["indexFile"].(bool) {
 		if arguments["<indexFile>"].(string) == "" {
@@ -66,8 +72,8 @@ Options:
 		validJSON := arguments["--validJSON"].(bool)
 		indexFile := arguments["<indexFile>"].(string)
 
-		res := processIndex(indexFile, cwd)
-		generateOutputFromYara(res, validJSON)
+		res := yago.ProcessIndex(indexFile, cwd)
+		yago.GenerateOutputFromYara(res, validJSON)
 
 	} else if arguments["inputFile"].(bool) {
 		if arguments["<inputFile>"].(string) == "" {
@@ -85,8 +91,8 @@ Options:
 
 			outputDir := arguments["<outputDir>"].(string)
 
-			res := processInputFile(inputFile, validJSON)
-			generateOutputToYaraDir(res, outputDir, overwrite)
+			res := yago.ProcessInputFile(inputFile, validJSON)
+			yago.GenerateOutputToYaraDir(res, outputDir, overwrite)
 
 		} else if arguments["outputFile"].(bool) {
 			if arguments["<outputFile>"].(string) == "" {
@@ -95,9 +101,9 @@ Options:
 
 			outputFile := arguments["<outputFile>"].(string)
 
-			res := processInputFile(inputFile, validJSON)
-			uniq := unifyRules(res)
-			generateOutputToYaraFile(uniq, outputFile, overwrite)
+			res := yago.ProcessInputFile(inputFile, validJSON)
+			uniq := yago.UnifyRules(res)
+			yago.GenerateOutputToYaraFile(uniq, outputFile, overwrite)
 		}
 
 	} else {

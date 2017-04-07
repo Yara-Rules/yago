@@ -1,58 +1,23 @@
-package main
+package grammar
 
 import (
 	"fmt"
 
-	"github.com/Yara-Rules/yago/yago"
+	"dev.jau.me/YaGo2/lexic"
 )
 
-type jsonCloak struct {
-	Ruleset []*yago.Parser
-}
-
-type unify struct {
-	imports []string
-	rules   []yago.RuleDef
-}
-
-func (u *unify) addImport(imp string) {
-	exist := false
-	for _, i := range u.imports {
-		if imp == i {
-			exist = true
-			break
-		}
-	}
-	if !exist {
-		u.imports = append(u.imports, imp)
-	}
-}
-
-func (u *unify) addRule(rule yago.RuleDef) {
-	exist := false
-	for _, rs := range u.rules {
-		if rule.Name == rs.Name {
-			exist = true
-			break
-		}
-	}
-	if !exist {
-		u.rules = append(u.rules, rule)
-	}
-
-}
-
-func (u *unify) String() string {
+// String returns a string representation of the Parser
+func (p *Parser) String() string {
 	r := ""
-	for _, imp := range u.imports {
+	for _, imp := range p.Imports {
 		r += fmt.Sprintf("import \"%s\"\n", imp)
 	}
 
-	if len(u.imports) > 0 {
+	if len(p.Imports) > 0 {
 		r += fmt.Sprintf("\n")
 	}
 
-	for _, rule := range u.rules {
+	for _, rule := range p.Rules {
 		if rule.Private {
 			r += fmt.Sprintf("private ")
 		}
@@ -79,16 +44,16 @@ func (u *unify) String() string {
 		if len(rule.Strings) > 0 {
 			r += fmt.Sprintf("\tstrings:\n")
 			for _, str := range rule.Strings {
-				if str.Typ == yago.StringString {
+				if str.Typ == StringString {
 					r += fmt.Sprintf("\t\t%s = \"%s\"", str.Name, str.Value)
 					if len(str.Modifiers) > 0 {
 						for _, m := range str.Modifiers {
 							r += fmt.Sprintf(" %s", m)
 						}
 					}
-				} else if str.Typ == yago.StringRegex {
+				} else if str.Typ == StringRegex {
 					r += fmt.Sprintf("\t\t%s = %s", str.Name, str.Value)
-				} else if str.Typ == yago.StringHex {
+				} else if str.Typ == StringHex {
 					r += fmt.Sprintf("\t\t%s = %s", str.Name, str.Value)
 				}
 				r += fmt.Sprintf("\n")
@@ -99,4 +64,34 @@ func (u *unify) String() string {
 		r += fmt.Sprintf("}\n\n")
 	}
 	return r
+}
+
+func (p *Parser) addImport(item lexic.Item) bool {
+	if !p.moduleAlreadyImported(item) {
+		p.Imports = append(p.Imports, item.GetValue())
+		return true
+	}
+	return false
+}
+
+func (p *Parser) moduleAlreadyImported(item lexic.Item) bool {
+	for _, v := range p.Imports {
+		if v == item.GetValue() {
+			return true
+		}
+	}
+	return false
+}
+
+func (p *Parser) ruleAlreadyImported(ruleName string) bool {
+	for _, v := range p.Rules {
+		if v.Name == ruleName {
+			return true
+		}
+	}
+	return false
+}
+
+func (p *Parser) addRule(rule RuleDef) {
+	p.Rules = append(p.Rules, rule)
 }

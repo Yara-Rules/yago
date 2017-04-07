@@ -1,4 +1,4 @@
-package yago
+package grammar
 
 import (
 	"encoding/json"

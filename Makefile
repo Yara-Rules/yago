@@ -1,6 +1,6 @@
 appname := yago
 BINARYNAME="YaGo"
-VERSION=v0.1.0
+VERSION=v0.1.2
 TARGET=all
 BUILD_TIME=$(shell date +%FT%T%z)
 BUILD=$(shell git rev-parse HEAD)

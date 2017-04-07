@@ -7,7 +7,7 @@ import (
 )
 
 func printVersion() string {
-	return fmt.Sprintf("%s %s\nBuild date: %s\nBuild ID: %s\n", Name, Version, BuildDate, BuildID)
+	return fmt.Sprintf("%s %s\nBuild date: %s\nBuild ID: %s\nLicense: Apache License 2.0", Name, Version, BuildDate, BuildID)
 }
 
 func printError(msg error) {
