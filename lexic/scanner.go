@@ -60,7 +60,7 @@ func scanCommentOrRegex(l *Lexer) stateFn {
 func scanVariable(l *Lexer) stateFn {
 	var r rune
 
-	if l.scanned() == "$" && isSpace(l.peek()) || isStar(l.peek()) { // $, $*
+	if l.scanned() == "$" && isSpace(l.peek()) || isStar(l.peek()) || isEqual(l.peek()) { // $, $*
 		l.emit("ItemVariable")
 		return lexText
 	}
