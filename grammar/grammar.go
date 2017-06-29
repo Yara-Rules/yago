@@ -63,7 +63,7 @@ func (p *Parser) warnf(format string, args ...interface{}) {
 	msg := fmt.Sprintf(format, args...)
 	err := make(map[string]string)
 
-	err["syntactical"] = "warnning"
+	err["syntactical"] = "warning"
 	err["line"] = fmt.Sprintf("%d", p.LastItem.GetLine())
 	err["msg"] = msg
 
