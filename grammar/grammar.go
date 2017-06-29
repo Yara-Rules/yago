@@ -481,6 +481,8 @@ func (p *Parser) processCondition() string {
 			}
 		} else if checkItemType(item, "__DOT__") || checkItemType(item, "__DOT_DOT__") {
 			value += item.GetValue()
+		} else if checkItemType(item, "__STRING__") {
+			value += "\"" + item.GetValue() + "\""
 		} else {
 			value += space + item.GetValue()
 		}
