@@ -186,7 +186,3 @@ func main() {
 # Contribute
 If you would like to be part of the Yara comunity or Yara-Rules project you are free to contribute with us in any way. You can send issues or pull requests, by sharing Yara rules, etc.
 
-# Changelog
-Version: **0.1.3**
-Initial release.
-

@@ -193,6 +193,10 @@ func isSpace(r rune) bool {
 	return r == ' '
 }
 
+func isValidRegexpMod(r rune) bool {
+	return r == 'i' || r == 's'
+}
+
 // isEndOfLine reports whether r is an end-of-line character.
 func isEndOfLine(r rune) bool {
 	return r == '\r' || r == '\n'

@@ -1,6 +1,6 @@
 appname := yago
 BINARYNAME="YaGo"
-VERSION=v0.1.2
+VERSION=$(shell git describe)
 TARGET=all
 BUILD_TIME=$(shell date +%FT%T%z)
 BUILD=$(shell git rev-parse HEAD)
@@ -23,7 +23,7 @@ zip = cd build && zip $(appname)_$(1)_$(2).zip $(appname)$(3) && rm $(appname)$(
 all: windows darwin linux
 
 clean:
-	rm -rf build/
+	rm -rf build/*
 
 ##### LINUX BUILDS #####
 linux: build/linux_arm.tar.gz build/linux_arm64.tar.gz build/linux_386.tar.gz build/linux_amd64.tar.gz

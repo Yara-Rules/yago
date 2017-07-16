@@ -51,6 +51,17 @@ func scanCommentOrRegex(l *Lexer) stateFn {
 			}
 			r = l.next()
 		}
+
+		mod := ""
+		r = l.next()
+		if !isValidRegexpMod(r) {
+			l.errorf("Line %d: illegal regex modifier", l.Line)
+		}
+		for isValidRegexpMod(r) {
+			mod += string(r)
+			r = l.next()
+		}
+		l.backup()
 		l.emit("ItemRegex")
 		return lexText
 	}
