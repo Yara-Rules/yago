@@ -15,11 +15,12 @@ import (
 )
 
 const (
-	MULTILINE = `\s*/\*([^*]|\*+[^*/])*\*+/\s*`
-	INLINE    = `(?m)\s*//.*[\n\r][\n\r]?`
-	BLANKS    = `(?m)\s+$`
-	QUOTES    = `"`
-	MAXBUFF   = 1024 * 1024 // If needed Go will take it form RAM.
+	MULTILINE   = `\s*/\*([^*]|\*+[^*/])*\*+/\s*`
+	INLINE      = `(?m)\s*//.*[\n\r][\n\r]?`
+	BLANKS      = `(?m)\s+$`
+	QUOTES      = `"`
+	MAXBUFF     = 1024 * 1024 // If needed Go will take it form RAM.
+	DEBUG_LEVEL = "INFO"
 )
 
 func NewParser(name string) *grammar.Parser {
@@ -31,7 +32,7 @@ func ProcessFile(fileName string) []*grammar.Parser {
 	checkErr(err)
 
 	p := NewParser(path.Base(fileName))
-	p.SetLogLevel("INFO")
+	p.SetLogLevel(DEBUG_LEVEL)
 	p.Parse(string(file))
 
 	var res []*grammar.Parser
@@ -54,7 +55,7 @@ func ProcessDir(dirName string) []*grammar.Parser {
 		checkErr(err)
 
 		p := NewParser(path.Base(filePath))
-		p.SetLogLevel("INFO")
+		p.SetLogLevel(DEBUG_LEVEL)
 		p.Parse(string(file))
 		res = append(res, p)
 	}
@@ -90,7 +91,7 @@ func ProcessIndex(indexFile, cwd string) []*grammar.Parser {
 				checkErr(err)
 
 				p := NewParser(path.Base(rulePath))
-				p.SetLogLevel("INFO")
+				p.SetLogLevel(DEBUG_LEVEL)
 				p.Parse(string(file))
 				res = append(res, p)
 			} else {

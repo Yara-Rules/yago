@@ -185,7 +185,7 @@ func isPercent(r rune) bool {
 
 // isBlank reports whether r is a black character
 func isBlank(r rune) bool {
-	return r == ' ' || r == '\t' || r == '\n'
+	return r == ' ' || r == '\t' || r == '\n' || r == '\r'
 }
 
 // isSpace reports whether r is a space character.
