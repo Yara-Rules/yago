@@ -447,13 +447,13 @@ func (p *Parser) processCondition() string {
 	item := p.nextItem()
 	last = item
 	for !checkItemType(item, "__CLOSE_CURLY__") {
-		if checkItemType(last, "__DOT__") || checkItemType(last, "__DOT_DOT__") {
+		if checkItemType(last, "__DOT__") || checkItemType(last, "__DOT_DOT__") || checkItemType(last, "__AT__") {
 			space = ""
 		}
 		if checkItemType(item, "__HASH__") {
 			hash := item.GetValue()
 			item = p.nextItem()
-			if checkItemType(item, "__IDENTIFIER__") {
+			if checkItemType(item, "__IDENTIFIER__") || checkItemType(item, "__INT_NUMBER__") {
 				value += space + hash + item.GetValue()
 			} else {
 				p.errorf("Expected %s and found %s", lexic.ItemType["ItemIdentifier"], item.GetType())
