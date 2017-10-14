@@ -54,7 +54,6 @@ func scanCommentOrRegex(l *Lexer) stateFn {
 
 		mod := ""
 		r = l.next()
-		fmt.Printf("%s -- '%s'", l.Name, string(r))
 		if !isBlank(r) && !isValidRegexpMod(r) {
 			l.errorf("Line %d: illegal regex modifier (%s)", l.Line, string(r))
 		}
