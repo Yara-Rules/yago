@@ -27,11 +27,11 @@ func (p *Parser) String() string {
 
 		r += fmt.Sprintf("rule %s", rule.Name)
 		if len(rule.Tags) > 0 {
-			r += fmt.Sprintf(" :")
-			for i := 0; i < len(rule.Tags)-1; i++ {
-				r += fmt.Sprintf(" %s", rule.Tags[i])
+			r += " :"
+			for _, tag := range rule.Tags {
+				r += fmt.Sprintf(" %s", tag)
 			}
-			r += fmt.Sprintf("%s {\n", rule.Tags[len(rule.Tags)-1])
+			r += " {\n"
 		} else {
 			r += fmt.Sprintf(" {\n")
 		}
