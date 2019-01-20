@@ -10,10 +10,13 @@
 
 ```
 
+---
+
 **NOTICE**
 
 Yara-Rules team has decided to archive this repository in favor to [yara-parser](https://github.com/Northern-Lights/yara-parser) since it is more actively maintained.
 
+---
 
 YaGo is a translation tool which converts Yara rules in JSON format so they could be handled easyly with a NoSQL database, for example.
 
